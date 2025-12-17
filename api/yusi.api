@@ -1,0 +1,214 @@
+syntax = "v1"
+
+info (
+	title:   "Yusi API"
+	desc:    "Yusi 后端服务 API 定义"
+	author:  "Aseubel"
+	version: "v1.0"
+)
+
+// ==================== 类型定义 ====================
+// 通用响应
+type Response {
+	Code    int         `json:"code"`
+	Message string      `json:"message"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+// ==================== 用户模块 ====================
+type RegisterRequest {
+	UserName string `json:"userName"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+type LoginRequest {
+	UserName string `json:"userName"`
+	Password string `json:"password"`
+}
+
+type AuthResponse {
+	Token  string `json:"token"`
+	UserId string `json:"userId"`
+}
+
+type User {
+	UserId   string `json:"userId"`
+	UserName string `json:"userName"`
+	Email    string `json:"email"`
+}
+
+// ==================== 日记模块 ====================
+type WriteDiaryRequest {
+	UserId     string `json:"userId"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Visibility bool   `json:"visibility"`
+	EntryDate  string `json:"entryDate"`
+}
+
+type EditDiaryRequest {
+	DiaryId    string `json:"diaryId"`
+	Title      string `json:"title,optional"`
+	Content    string `json:"content,optional"`
+	Visibility bool   `json:"visibility,optional"`
+}
+
+type Diary {
+	DiaryId    string `json:"diaryId"`
+	UserId     string `json:"userId"`
+	Title      string `json:"title"`
+	Content    string `json:"content"`
+	Visibility bool   `json:"visibility"`
+	EntryDate  string `json:"entryDate"`
+	CreateTime string `json:"createTime"`
+	UpdateTime string `json:"updateTime"`
+}
+
+type DiaryListRequest {
+	UserId   string `form:"userId"`
+	PageNum  int    `form:"pageNum,default=1"`
+	PageSize int    `form:"pageSize,default=10"`
+	SortBy   string `form:"sortBy,optional"`
+	Asc      bool   `form:"asc,default=true"`
+}
+
+type DiaryListResponse {
+	Total   int64   `json:"total"`
+	List    []Diary `json:"list"`
+	Page    int     `json:"page"`
+	PerPage int     `json:"perPage"`
+}
+
+// ==================== 情景房间模块 ====================
+type CreateRoomRequest {
+	OwnerId    string `json:"ownerId"`
+	MaxMembers int    `json:"maxMembers"`
+}
+
+type JoinRoomRequest {
+	Code   string `json:"code"`
+	UserId string `json:"userId"`
+}
+
+type StartRoomRequest {
+	Code       string `json:"code"`
+	ScenarioId string `json:"scenarioId"`
+	OwnerId    string `json:"ownerId"`
+}
+
+type SubmitNarrativeRequest {
+	Code      string `json:"code"`
+	UserId    string `json:"userId"`
+	Narrative string `json:"narrative"`
+}
+
+type SituationRoom {
+	Code       string   `json:"code"`
+	OwnerId    string   `json:"ownerId"`
+	MaxMembers int      `json:"maxMembers"`
+	Members    []string `json:"members"`
+	Status     string   `json:"status"`
+	ScenarioId string   `json:"scenarioId,optional"`
+}
+
+type SituationReport {
+	Code       string                 `json:"code"`
+	Summary    string                 `json:"summary"`
+	Narratives map[string]interface{} `json:"narratives"`
+}
+
+// ==================== AI 模块 ====================
+type ChatRequest {
+	UserId  string `json:"userId"`
+	Message string `json:"message"`
+	RoomId  string `json:"roomId,optional"`
+}
+
+// ==================== API 路由定义 ====================
+@server (
+	prefix: /api/user
+	group:  user
+)
+service yusi {
+	@doc "用户注册"
+	@handler register
+	post /register (RegisterRequest) returns (Response)
+
+	@doc "用户登录"
+	@handler login
+	post /login (LoginRequest) returns (Response)
+}
+
+@server (
+	prefix:     /api/user
+	group:      user
+	middleware: Auth
+)
+service yusi {
+	@doc "用户登出"
+	@handler logout
+	post /logout returns (Response)
+}
+
+@server (
+	prefix:     /api/diary
+	group:      diary
+	middleware: Auth
+)
+service yusi {
+	@doc "获取日记列表"
+	@handler getDiaryList
+	get /list (DiaryListRequest) returns (Response)
+
+	@doc "写日记"
+	@handler writeDiary
+	post / (WriteDiaryRequest) returns (Response)
+
+	@doc "编辑日记"
+	@handler editDiary
+	put / (EditDiaryRequest) returns (Response)
+
+	@doc "获取日记详情"
+	@handler getDiary
+	get /:diaryId returns (Response)
+}
+
+@server (
+	prefix:     /api/room
+	group:      room
+	middleware: Auth
+)
+service yusi {
+	@doc "创建房间"
+	@handler createRoom
+	post /create (CreateRoomRequest) returns (Response)
+
+	@doc "加入房间"
+	@handler joinRoom
+	post /join (JoinRoomRequest) returns (Response)
+
+	@doc "开始房间"
+	@handler startRoom
+	post /start (StartRoomRequest) returns (Response)
+
+	@doc "提交叙述"
+	@handler submitNarrative
+	post /submit (SubmitNarrativeRequest) returns (Response)
+
+	@doc "获取报告"
+	@handler getReport
+	get /report/:code returns (Response)
+}
+
+@server (
+	prefix:     /api/ai
+	group:      ai
+	middleware: Auth
+)
+service yusi {
+	@doc "AI 聊天（流式）"
+	@handler chatStream
+	post /chat/stream (ChatRequest) returns (Response)
+}
+

@@ -1,0 +1,34 @@
+Name: yusi
+Host: 0.0.0.0
+Port: 8088
+
+# MySQL 配置
+Mysql:
+  DataSource: root:your-password@tcp(127.0.0.1:3306)/yusi?charset=utf8mb4&parseTime=true&loc=Local
+
+# Redis 配置
+Redis:
+  Host: 127.0.0.1:6379
+  Type: node
+  Pass: ""
+
+# JWT 配置
+Auth:
+  AccessSecret: your-secret-key-here-change-this
+  AccessExpire: 86400
+
+# 日志配置
+Log:
+  ServiceName: yusi
+  Mode: console
+  Level: info
+
+# AI 配置 (可选)
+AI:
+  QwenApiKey: ${QWEN_API_KEY}
+  MilvusUri: ""
+  MilvusToken: ""
+
+# 加密配置
+Encryption:
+  Key: ${YUSI_ENCRYPTION_KEY}

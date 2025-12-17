@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  yusi-backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "20611:20611"
+    environment:
+      - QWEN_API_KEY=${QWEN_API_KEY}
+      - YUSI_ENCRYPTION_KEY=${YUSI_ENCRYPTION_KEY}
+    depends_on:
+      - mysql
+      - redis
+    networks:
+      - yusi-network
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: yusi
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - yusi-network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - yusi-network
+
+volumes:
+  mysql-data:
+
+networks:
+  yusi-network:
+    driver: bridge
