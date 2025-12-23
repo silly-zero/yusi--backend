@@ -21,7 +21,7 @@ func GetDiaryHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			diaryId = r.URL.Path[len("/api/diary/"):]
 		}
 
-		l := diary.NewGetDiaryLogic(r.Context(), svcCtx)
+		l := diary.NewGetDiaryLogic(r.Context(), svcCtx, r)
 		resp, err := l.GetDiary(diaryId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)

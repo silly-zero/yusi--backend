@@ -9,20 +9,20 @@ import (
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"yusi-backend/internal/logic/diary"
 	"yusi-backend/internal/svc"
-	"yusi-backend/internal/types"
 )
 
-// 编辑日记
-func EditDiaryHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
+// 删除日记
+func DeleteDiaryHandler(svcCtx *svc.ServiceContext) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var req types.EditDiaryRequest
-		if err := httpx.Parse(r, &req); err != nil {
-			httpx.ErrorCtx(r.Context(), w, err)
-			return
+		// 从URL路径获取diaryId
+		diaryId := r.URL.Query().Get(":diaryId")
+		if diaryId == "" {
+			// 尝试从URL路径获取
+			diaryId = r.URL.Path[len("/api/diary/"):]
 		}
 
-		l := diary.NewEditDiaryLogic(r.Context(), svcCtx, r)
-		resp, err := l.EditDiary(&req)
+		l := diary.NewDeleteDiaryLogic(r.Context(), svcCtx, r)
+		resp, err := l.DeleteDiary(diaryId)
 		if err != nil {
 			httpx.ErrorCtx(r.Context(), w, err)
 		} else {

@@ -54,10 +54,22 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 					Handler: diary.GetDiaryHandler(serverCtx),
 				},
 				{
+					// 删除日记
+					Method:  http.MethodDelete,
+					Path:    "/:diaryId",
+					Handler: diary.DeleteDiaryHandler(serverCtx),
+				},
+				{
 					// 获取日记列表
 					Method:  http.MethodGet,
 					Path:    "/list",
 					Handler: diary.GetDiaryListHandler(serverCtx),
+				},
+				{
+					// 搜索日记
+					Method:  http.MethodGet,
+					Path:    "/search",
+					Handler: diary.SearchDiaryHandler(serverCtx),
 				},
 			}...,
 		),

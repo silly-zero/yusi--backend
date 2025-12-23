@@ -15,16 +15,16 @@ import (
 	"github.com/zeromicro/go-zero/core/logx"
 )
 
-type EditDiaryLogic struct {
+type DeleteDiaryLogic struct {
 	logx.Logger
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 	r      *http.Request
 }
 
-// 编辑日记
-func NewEditDiaryLogic(ctx context.Context, svcCtx *svc.ServiceContext, r *http.Request) *EditDiaryLogic {
-	return &EditDiaryLogic{
+// 删除日记
+func NewDeleteDiaryLogic(ctx context.Context, svcCtx *svc.ServiceContext, r *http.Request) *DeleteDiaryLogic {
+	return &DeleteDiaryLogic{
 		Logger: logx.WithContext(ctx),
 		ctx:    ctx,
 		svcCtx: svcCtx,
@@ -32,9 +32,9 @@ func NewEditDiaryLogic(ctx context.Context, svcCtx *svc.ServiceContext, r *http.
 	}
 }
 
-func (l *EditDiaryLogic) EditDiary(req *types.EditDiaryRequest) (resp *types.Response, err error) {
+func (l *DeleteDiaryLogic) DeleteDiary(diaryId string) (resp *types.Response, err error) {
 	// 验证参数
-	if req.DiaryId == "" {
+	if diaryId == "" {
 		return &types.Response{
 			Code:    400,
 			Message: "日记ID不能为空",
@@ -50,9 +50,9 @@ func (l *EditDiaryLogic) EditDiary(req *types.EditDiaryRequest) (resp *types.Res
 		}, nil
 	}
 
-	// 查询日记是否存在
+	// 查询日记，检查是否存在以及权限
 	var diary model.Diary
-	result := l.svcCtx.DB.Where("diary_id = ?", req.DiaryId).First(&diary)
+	result := l.svcCtx.DB.Where("diary_id = ?", diaryId).First(&diary)
 	if result.Error != nil {
 		return &types.Response{
 			Code:    404,
@@ -60,34 +60,25 @@ func (l *EditDiaryLogic) EditDiary(req *types.EditDiaryRequest) (resp *types.Res
 		}, nil
 	}
 
-	// 验证权限：只能编辑自己的日记
+	// 验证权限：只能删除自己的日记
 	if diary.UserId != userId {
 		return &types.Response{
 			Code:    403,
-			Message: "无权限编辑此日记",
+			Message: "无权限删除此日记",
 		}, nil
 	}
 
-	// 更新字段
-	updates := make(map[string]interface{})
-	if req.Title != "" {
-		updates["title"] = req.Title
-	}
-	if req.Content != "" {
-		updates["content"] = req.Content
-	}
-	// Visibility 是bool类型，需要特殊处理
-	updates["visibility"] = req.Visibility
-
-	if err := l.svcCtx.DB.Model(&diary).Updates(updates).Error; err != nil {
+	// 删除日记（软删除）
+	result = l.svcCtx.DB.Delete(&diary)
+	if result.Error != nil {
 		return &types.Response{
 			Code:    500,
-			Message: "更新日记失败",
+			Message: "删除失败",
 		}, nil
 	}
 
 	return &types.Response{
 		Code:    200,
-		Message: "更新成功",
+		Message: "删除成功",
 	}, nil
 }

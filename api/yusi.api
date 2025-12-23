@@ -80,6 +80,16 @@ type DiaryListResponse {
 	PerPage int     `json:"perPage"`
 }
 
+type DeleteDiaryRequest {
+	DiaryId string `path:"diaryId"`
+}
+
+type SearchDiaryRequest {
+	Keyword  string `form:"keyword"`
+	PageNum  int    `form:"pageNum,default=1"`
+	PageSize int    `form:"pageSize,default=10"`
+}
+
 // ==================== 情景房间模块 ====================
 type CreateRoomRequest {
 	OwnerId    string `json:"ownerId"`
@@ -172,6 +182,14 @@ service yusi {
 	@doc "获取日记详情"
 	@handler getDiary
 	get /:diaryId returns (Response)
+
+	@doc "删除日记"
+	@handler deleteDiary
+	delete /:diaryId (DeleteDiaryRequest) returns (Response)
+
+	@doc "搜索日记"
+	@handler searchDiary
+	get /search (SearchDiaryRequest) returns (Response)
 }
 
 @server (
