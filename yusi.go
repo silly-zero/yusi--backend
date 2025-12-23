@@ -12,7 +12,7 @@ import (
 	"github.com/zeromicro/go-zero/rest"
 )
 
-var configFile = flag.String("f", "etc/yusi.yaml", "配置文件路径")
+var configFile = flag.String("f", "config.yaml", "配置文件路径")
 
 func main() {
 	flag.Parse()
